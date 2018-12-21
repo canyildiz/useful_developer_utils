@@ -1,0 +1,21 @@
+#!/bin/bash
+#
+
+if [ "$1" == "-u" ] || [ "$1" == "--update" ]; then
+	git-update
+fi
+set -e
+DIR=${PWD}
+MASTER_BR=$(git config --get gitflow.branch.master)
+echo "FETCHING LATEST..."
+git fetch --prune --progress
+LATEST_RELEASE=$(git describe | awk -F"-" '{print $1}' | awk -F"." '{print $1"."$2}')
+echo "LATEST RELEASE: $LATEST_RELEASE"
+git tag -l $LATEST_RELEASE.* | awk -F"." '{print $3}' | sort -n | tail -1 > /tmp/last_branch
+git branch -a | grep "$LATEST_RELEASE." | awk -F "/" '{print $4}' | awk -F "." '{print $3}' | sort -n | tail -1 >> /tmp/last_branch
+LATEST_BRANCH=$(cat /tmp/last_branch | sort -n | tail -1)
+echo "LATEST BRANCH: $LATEST_RELEASE.$LATEST_BRANCH"
+NEW_BRANCH=$(expr $LATEST_BRANCH + 1)
+echo "=== NEW BRANCH: $LATEST_RELEASE.$NEW_BRANCH ==="
+git -c core.quotepath=false flow hotfix start $LATEST_RELEASE.$NEW_BRANCH $MASTER_BR
+git -c core.quotepath=false push --progress --porcelain origin refs/heads/hotfix/$LATEST_RELEASE.$NEW_BRANCH:hotfix/$LATEST_RELEASE.$NEW_BRANCH --set-upstream

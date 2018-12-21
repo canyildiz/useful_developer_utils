@@ -1,0 +1,15 @@
+#!/bin/bash
+#
+set -e
+DIR=${PWD}
+MASTER_BR=$(git config --get gitflow.branch.master)
+DEV_BR=$(git config --get gitflow.branch.develop)
+echo "FETCHING LATEST"
+git fetch --prune --progress
+echo "$MASTER_BR PULL"
+git checkout $MASTER_BR
+git pull
+echo "$DEV_BR PULL"
+git checkout $DEV_BR
+git pull
+echo "=== DONE ==="
