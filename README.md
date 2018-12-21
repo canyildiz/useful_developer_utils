@@ -1,4 +1,4 @@
-# useful_linux_scripts
+# Useful Developer Utils for Developers
 
 # Git Scripts
 You may download and copy following scripts into your `/usr/bin` , `/usr/local/bin` OR any folder listed in "PATH" environmental variable. Then you may use calling them as "git <feature_name>" like `git next-version`.
