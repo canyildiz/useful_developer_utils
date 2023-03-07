@@ -1,29 +1,46 @@
 #!/bin/bash
 #
+
+checkIfGitRepo() {
+	git rev-parse --is-inside-work-tree > /dev/null 2>&1
+	GIT_CHECK=$?
+	if [[ GIT_CHECK -ne 0 ]]; then
+		echo "This is not a valid git repo! Exiting..."
+		exit 1
+	fi
+}
+
+fetchLatest() {
+	echo "FETCHING LATEST"
+	git fetch --prune --all --progress
+}
+
+updateBranch() {
+	BRANCH_NAME=$1
+	echo "---"
+	echo "Updating branch: '$BRANCH_NAME'"
+	CHECKOUT_OUT=`git checkout $BRANCH_NAME`
+	if [[ "$CHECKOUT_OUT" != *"branch is up to date"* ]]; then
+		git merge
+	fi
+}
+
 DIR=${PWD}
-git rev-parse --is-inside-work-tree > /dev/null 2>&1
-GIT_CHECK=$?
-if [ GIT_CHECK -eq 0 ]; then
-	echo "This is not a valid git repo! Exiting..."
-	exit 1
-fi
+
+checkIfGitRepo
+
 MASTER_BR=$(git config --get gitflow.branch.master)
 DEV_BR=$(git config --get gitflow.branch.develop)
-if [[ -z $MASTER_BR ]]; then
-	echo "MASTER BRANCH not set. Use 'git flow init' command to initalize git flow";
+
+if [[ -z $MASTER_BR || -z $DEV_BR ]]; then
+	echo "Branchs information not set. Use 'git flow init' command to initalize git flow";
 	exit 2
 fi
-if [[ -z $DEV_BR ]]; then
-	echo "DEVELOPMENT BRANCH not set. Use 'git flow init' command to initalize git flow";
-	exit 3
-fi
+
 set -e
-echo "FETCHING LATEST"
-git fetch --prune --all --progress
-echo "$MASTER_BR PULL"
-git checkout $MASTER_BR
-git merge
-echo "$DEV_BR PULL"
-git checkout $DEV_BR
-git merge
+
+fetchLatest
+updateBranch $MASTER_BR
+updateBranch $DEV_BR
+
 echo "=== DONE ==="
